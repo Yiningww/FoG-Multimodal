@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 import datetime
 data_folder = '/Users/wangyining/Desktop/Research/Xuanwu/Code/Filtered Data/'
@@ -65,7 +66,7 @@ np.savetxt("combined_data.csv", combined_data, fmt="%f")
 
 #ata = np.genfromtxt('combined_data.csv', delimiter=',', skip_header=0)
 # Define the input and output file paths
-'''
+
 #data = np.loadtxt('combined_data.txt')
 csv = np.loadtxt('combined_data.csv')
 #print(csv[:5, :])
@@ -78,7 +79,7 @@ print("shape of all data:",csv.shape)
 #print("shape of z scores:",z_scores.shape)
 fog_counter = 0
 fog_episode = []
-'''
+
 same_episode = 0
 test = [0,0,1,1,1,0,1,1,0,0,0,1,1,0,1]
 for row in len(test):
@@ -100,7 +101,7 @@ for row in len(test):
         
 
     fog_counter += 1
-'''
+
 for row in range(len(csv)):
     if csv[row][58] == 1.0:
         if row == 0:
@@ -132,6 +133,54 @@ print(column_means, column_means.shape)
 z_scores = (omitted_acc_csv - np.mean(omitted_acc_csv, axis=0)) / np.std(omitted_acc_csv, axis=0)
 print("Z-Scores are:",z_scores)
 print("shape of z scores:",z_scores.shape)
+'''
+
+### Data Segmentation
+# Read the CSV file into a pandas dataframe
+df = pd.read_csv('combined_data.csv', delimiter = " ", header = None)
+
+# Define the size of the window and the step size
+window_size = 1000 #2s/0.002s
+step_size = 125 #0.25s/0.002s
+
+# Create a list to store the segmented data
+segmented_data_2s = []
+labels_2s = []
+label_counter = 0
+# Loop through the dataframe and segment the data
+print(df.shape)
+
+for i in range(0, len(df), step_size):
+    if i + window_size <= len(df):
+        segment = df.iloc[i:i+window_size]
+        for row in range(i,i+window_size):
+            if df[58][row] == 1.0:
+                label_counter += 1
+        if label_counter >= 850:
+            label = 1
+            labels_2s.append(label)
+            label_counter = 0
+        else:
+            label = 0
+            labels_2s.append(label)
+            label_counter = 0
+
+        #print(segment)
+        #print(segment.shape)
+
+        segmented_data_2s.append(segment)
+
+
+#print(labels_2s)
+print(labels_2s.count(1))
+print(labels_2s.count(0))
+print(len(labels_2s))#should be 34457, since total_windows = ((len(df) - window_size) // step_size) + 1
+print("segment shape is:")
+print(segment.shape)
+# Concatenate the segmented data into a new dataframe
+segmented_df = pd.concat(segmented_data_2s)
+print(segmented_df.shape)
+segmented_df.to_csv('segmented_data_2s_0.25s.csv', index=True)
 
 
 
