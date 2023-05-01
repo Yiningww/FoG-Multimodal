@@ -3,11 +3,11 @@ import pandas as pd
 import os
 import datetime
 data_folder = '/Users/wangyining/Desktop/Research/Xuanwu/Code/Filtered Data/'
-'''
-data_list = []
 
+data_list = []
+patient_list = ["001", "003", "009", "010"]
 for foldername in sorted(os.listdir(data_folder)):
-    if "00" in foldername:
+    if foldername in patient_list:
         each_patient_path = os.path.join(data_folder,foldername)
         #print(each_patient_path)
 
@@ -22,11 +22,13 @@ for foldername in sorted(os.listdir(data_folder)):
                     each_task_txt_path = os.path.join(each_task_path,each_task_txt)
                     #current_data_file = np.loadtxt(each_task_txt_path)
                     data_list.append(each_task_txt_path)
-#print(data_list)
 
-data_list = ['/Users/wangyining/Desktop/test.txt']
+print(data_list)
+#data_list = ['/Users/wangyining/Desktop/test.txt']
 
 all_data = []
+counter = 1
+data_length = 0
 for file_name in data_list:
     # Load the data from the file
     file_data = np.genfromtxt(file_name, delimiter=",", dtype=str)
@@ -40,13 +42,56 @@ for file_name in data_list:
     #stacked_data = np.hstack((date_objects.reshape(-1, 1), int_values))
 
     # Convert the string data to float data
+    file_data_str = file_data[:,0].astype(int)
     file_data_float = file_data[:, 2:].astype(float)
 
-    # Add the converted data to the list
-    all_data.append(file_data_float)
 
+    #file_data_int = file_data_float.astype(int)
+    result = np.hstack((file_data_str[:, np.newaxis], file_data_float))
+    #last_data_int = file_data[:, 60].astype(int)
+    #result = np.hstack((con[:, np.newaxis],last_data_int))
+    acc_part = result[:,[0, 31, 32, 33, 45, 46, 47, 52, 53, 54, 59]]
+    print(file_name)
+    file_split = file_name.split('/')
+    name = "S"+file_split[-2][-2:]+"R0"+file_split[-1][5]+'.txt'
+    counter += 1
+    file_path = data_folder+'Test/'+name
+    print(len(file_data_str))
+
+    data_length += len(file_data_str)
+    np.savetxt(file_path,acc_part,fmt="%i")
+    '''
+    is_zero_1 = np.all(result[:, [31, 32, 33]] == 0.0)
+    print("111:",is_zero_1)
+    is_zero_2 = np.all(result[:, [38, 39, 40]] == 0.0)
+    print("222:",is_zero_2)
+    is_zero_3 = np.all(result[:, [45, 46, 47]] == 0.0)
+    print("333",is_zero_3)
+    is_zero_4 = np.all(result[:, [52, 53, 54]] == 0.0)
+    print("444",is_zero_4)
+    '''
+    #if is_zero_1 != 1 and is_zero_3 != 1 and is_zero_4 != 1:
+        #print("patient does have sufficient acc data:",file_name)
+    # Add the converted data to the list
+    #else:
+        #print("patient does not have acc data",file_name)
+    #all_data.append(result)
+print("data length is:",data_length)
+exit()
 # Combine the data from all the files into a single NumPy array
 combined_data = np.concatenate(all_data, axis=0)
+
+#np.savetxt("combined_data.txt", combined_data, fmt="%f")
+np.savetxt("test_for_each_column.txt", combined_data, fmt="%f")
+acc = np.loadtxt('test_for_each_column.txt')
+accc = acc[:, [0, 31, 32, 33, 38, 39, 40, 45, 46, 47, 52, 53, 54, 59]]
+np.savetxt("outcome_test.txt", accc, fmt = "%f")
+print(accc.shape)
+#print(accc[:,11])
+exit()
+
+
+
 #column_titles = "FP1, FP2, F3, F4, C4, C4, P3, P4, O1, O2, F7, F8, P7, P8, FZ, CZ, PZ, FC1, FC2, CP1, " \
                #"CP2, FC5, FC6, CP5, CP6, EMG-1, EMG-2, IO, EMG-3, EMG-4," \
                #"LS-acc-x, LS-acc-y, LS-acc-z, LS-Gyro-x, LS-Gyro-y, LS-Gyro-z, LS-NC," \
@@ -54,6 +99,7 @@ combined_data = np.concatenate(all_data, axis=0)
                #"waist-acc-x, waist-acc-y, waist-acc-z, waist-Gyro-x, waist-Gyro-y, waist-Gyro-z, waist-NC, " \
                #"arm-acc-x, arm-acc-y, arm-acc-z, arm-Gyro-x, arm-Gyro-y, arm-Gyro-z, arm-SC, Label"
 
+'''
 # Save the combined data to a file
 np.savetxt("combined_data.txt", combined_data, fmt="%f")
 np.savetxt("combined_data.csv", combined_data, fmt="%f")
@@ -182,7 +228,7 @@ segmented_df = pd.concat(segmented_data_2s)
 print(segmented_df.shape)
 segmented_df.to_csv('segmented_data_2s_0.25s.csv', index=True)
 
-
+##### Implementation of Tian's partition method to current phase
 
 
 
